@@ -1,0 +1,7 @@
+{
+  "XGBoost_val_rmse": 7.8757,
+  "XGBoost_Rolling_val_rmse": 7.507,
+  "GRU_Simple_val_rmse": 6.4278,
+  "best_model": "GRU-Simple",
+  "best_val_rmse": 6.4278
+}

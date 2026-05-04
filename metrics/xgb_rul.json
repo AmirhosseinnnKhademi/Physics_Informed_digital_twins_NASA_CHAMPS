@@ -1,0 +1,8 @@
+{
+  "val_rmse": 8.4443,
+  "val_mae": 7.2773,
+  "val_r2": 0.8538,
+  "val_nasa_score": 153.1,
+  "train_rmse": 3.5959,
+  "best_iteration": 47
+}

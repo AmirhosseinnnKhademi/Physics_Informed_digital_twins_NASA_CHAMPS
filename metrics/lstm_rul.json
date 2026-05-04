@@ -1,0 +1,7 @@
+{
+  "val_rmse": 4.1448,
+  "val_mae": 3.3874,
+  "val_r2": -0.062,
+  "val_nasa_score": 63.45,
+  "best_epoch": 30
+}

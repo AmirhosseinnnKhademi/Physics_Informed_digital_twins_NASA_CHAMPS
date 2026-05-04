@@ -1,0 +1,530 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: .venv\Scripts\python.exe src/prepare.py
+    deps:
+    - path: data/raw/N-CMAPSS_DS03-012.h5
+      hash: md5
+      md5: a301cd2cfa9b7da6e6ec12051ded9afe
+      size: 3693395776
+    - path: src/prepare.py
+      hash: md5
+      md5: cfd95355e6c2d19e00969ead5fd034ce
+      size: 4974
+    params:
+      params.yaml:
+        prepare:
+          train_units:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          - 6
+          - 7
+          - 8
+          - 9
+          - 10
+          - 11
+          - 12
+          val_units:
+          - 13
+          - 14
+          test_units:
+          - 15
+          stats:
+          - mean
+          - std
+          - min
+          - max
+          rul_cap: 125
+    outs:
+    - path: data/processed/all_cycles.parquet
+      hash: md5
+      md5: 9b4e36b349cd1b88437f7ed918215579
+      size: 645175
+    - path: data/processed/metadata.json
+      hash: md5
+      md5: 6668963606fc8ca07c6ca8c39fa5af6d
+      size: 2947
+  train_lstm:
+    cmd: .venv\Scripts\python.exe src/train_lstm.py
+    deps:
+    - path: data/processed/all_cycles.parquet
+      hash: md5
+      md5: 9b4e36b349cd1b88437f7ed918215579
+      size: 645175
+    - path: data/processed/metadata.json
+      hash: md5
+      md5: 6668963606fc8ca07c6ca8c39fa5af6d
+      size: 2947
+    - path: src/mlflow_setup.py
+      hash: md5
+      md5: 74fc0dc017ceb21fd5f859e88d710ed9
+      size: 846
+    - path: src/models.py
+      hash: md5
+      md5: ddb359013f2dab55ba6923d36623f16b
+      size: 2631
+    - path: src/train_lstm.py
+      hash: md5
+      md5: 8053a2852838eb8c0cb097027682a1f4
+      size: 7484
+    params:
+      params.yaml:
+        gru:
+          window_size: 10
+          cnn_channels: 64
+          hidden_size: 128
+          num_layers: 2
+          dropout: 0.3
+          lr: 0.001
+          batch_size: 256
+          epochs: 100
+          patience: 15
+          grad_clip: 1.0
+        prepare.train_units:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+        - 10
+        - 11
+        - 12
+        prepare.val_units:
+        - 13
+        - 14
+    outs:
+    - path: metrics/gru_rul.json
+      hash: md5
+      md5: 712e43a0292cfa2b7b9120e112294310
+      size: 122
+    - path: models/gru_rul.pt
+      hash: md5
+      md5: a2ec78c3a21d671a468db8b165dddfef
+      size: 836988
+    - path: models/gru_scaler.pkl
+      hash: md5
+      md5: a3cbcfb9e0b0f7db6c080cf066e63bb3
+      size: 3814
+  train_xgb:
+    cmd: .venv\Scripts\python.exe src/train_xgb.py
+    deps:
+    - path: data/processed/all_cycles.parquet
+      hash: md5
+      md5: 9b4e36b349cd1b88437f7ed918215579
+      size: 645175
+    - path: data/processed/metadata.json
+      hash: md5
+      md5: 6668963606fc8ca07c6ca8c39fa5af6d
+      size: 2947
+    - path: src/mlflow_setup.py
+      hash: md5
+      md5: 74fc0dc017ceb21fd5f859e88d710ed9
+      size: 846
+    - path: src/train_xgb.py
+      hash: md5
+      md5: a591515628c0127695c122f0ace0e481
+      size: 4240
+    params:
+      params.yaml:
+        prepare.train_units:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+        - 10
+        - 11
+        - 12
+        prepare.val_units:
+        - 13
+        - 14
+        xgb:
+          n_estimators: 10000
+          max_depth: 10
+          learning_rate: 0.05
+          subsample: 0.8
+          colsample_bytree: 0.8
+          min_child_weight: 3
+          gamma: 0.1
+          reg_alpha: 0.1
+          reg_lambda: 1.0
+          early_stopping_rounds: 500
+    outs:
+    - path: metrics/xgb_rul.json
+      hash: md5
+      md5: 3e128b7a9ef0f2d14ccf567a4c13f4a8
+      size: 147
+    - path: models/xgb_rul.ubj
+      hash: md5
+      md5: 45f76671990549a0b722a87cb1d88013
+      size: 1960126
+    - path: models/xgb_scaler.pkl
+      hash: md5
+      md5: 85359f13330f74be6d22c5e18111a33b
+      size: 3798
+  train_classifier:
+    cmd: .venv\Scripts\python.exe src/train_classifier.py
+    deps:
+    - path: data/processed/all_cycles.parquet
+      hash: md5
+      md5: 3bd1d27fd18153f17367476fae142be6
+      size: 645175
+    - path: data/processed/metadata.json
+      hash: md5
+      md5: c46f6d0087ce917e682f1365c8b96042
+      size: 2947
+    - path: src/mlflow_setup.py
+      hash: md5
+      md5: 74fc0dc017ceb21fd5f859e88d710ed9
+      size: 846
+    - path: src/models.py
+      hash: md5
+      md5: d0777344bf90eb5e72a7c40446a29534
+      size: 4469
+    - path: src/train_classifier.py
+      hash: md5
+      md5: d94ffd951ffa7fb99cf0a4fe88c2f5b5
+      size: 7686
+    params:
+      params.yaml:
+        classifier:
+          n_estimators: 500
+          max_depth: 5
+          learning_rate: 0.05
+          subsample: 0.8
+          colsample_bytree: 0.8
+          early_stopping_rounds: 20
+          window_size: 30
+          hidden_size: 64
+          num_layers: 1
+          dropout: 0.2
+          lr: 0.001
+          batch_size: 256
+          epochs: 50
+          patience: 10
+        prepare.train_units:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+        - 10
+        - 11
+        prepare.val_units:
+        - 12
+        - 13
+    outs:
+    - path: metrics/classifier.json
+      hash: md5
+      md5: 408ebea77ef14d9e1c777dc2b1dd75a9
+      size: 505
+    - path: models/cls_scaler.pkl
+      hash: md5
+      md5: 59a0caf9bdff8bca1e75c4c885f6a5f3
+      size: 3798
+    - path: models/lstm_cls.pt
+      hash: md5
+      md5: 073b9af86e997dee8ee6ace75dfcf4ac
+      size: 305551
+    - path: models/xgb_cls.ubj
+      hash: md5
+      md5: 0044811a40a5cc048d1266c9736a5e31
+      size: 196092
+  evaluate:
+    cmd: .venv\Scripts\python.exe src/evaluate.py
+    deps:
+    - path: data/processed/all_cycles.parquet
+      hash: md5
+      md5: 9b4e36b349cd1b88437f7ed918215579
+      size: 645175
+    - path: data/processed/metadata.json
+      hash: md5
+      md5: 6668963606fc8ca07c6ca8c39fa5af6d
+      size: 2947
+    - path: models/best_model.json
+      hash: md5
+      md5: 329160aa5f36d700a5a48b3286a14adb
+      size: 1132
+    - path: models/ft_gru_simple_rul.pt
+      hash: md5
+      md5: 2737519866c617dc1ad3cb42124ab9b7
+      size: 45990
+    - path: models/ft_gru_simple_scaler.pkl
+      hash: md5
+      md5: 3ca4bf2eaeb99675eb4887bf806c3e59
+      size: 3876
+    - path: models/ft_xgb_rolling_rul.ubj
+      hash: md5
+      md5: 31e0d15aee3e70e895b0aa18947d3c8a
+      size: 621246
+    - path: models/ft_xgb_rolling_scaler.pkl
+      hash: md5
+      md5: 33ccc0da61324060e30943ae66e43c9e
+      size: 13041
+    - path: models/ft_xgb_rul.ubj
+      hash: md5
+      md5: 361e2a00f5fc3b2d05ab9061fc17ae63
+      size: 70068
+    - path: models/ft_xgb_scaler.pkl
+      hash: md5
+      md5: 85359f13330f74be6d22c5e18111a33b
+      size: 3798
+    - path: src/evaluate.py
+      hash: md5
+      md5: 7732da3d17558b6b87929c7fecfb7769
+      size: 22740
+    - path: src/features.py
+      hash: md5
+      md5: dceacb9f98f28abc0b4fc0e4f76636cd
+      size: 1722
+    - path: src/mlflow_setup.py
+      hash: md5
+      md5: 74fc0dc017ceb21fd5f859e88d710ed9
+      size: 846
+    - path: src/models.py
+      hash: md5
+      md5: c6df8aeb64bfe6ca7882e745a7347c7a
+      size: 3498
+    params:
+      params.yaml:
+        prepare.rul_cap: 125
+    outs:
+    - path: metrics/evaluation.json
+      hash: md5
+      md5: 60bb7e217e5cf31b064ef8e2f29cd895
+      size: 438
+    - path: reports/plots
+      hash: md5
+      md5: efdfc8ec936987e11f0d442d920b09ed.dir
+      size: 1036467
+      nfiles: 8
+  train_xgb_rolling:
+    cmd: .venv\Scripts\python.exe src/train_xgb_rolling.py
+    deps:
+    - path: data/processed/all_cycles.parquet
+      hash: md5
+      md5: 9b4e36b349cd1b88437f7ed918215579
+      size: 645175
+    - path: data/processed/metadata.json
+      hash: md5
+      md5: 6668963606fc8ca07c6ca8c39fa5af6d
+      size: 2947
+    - path: src/features.py
+      hash: md5
+      md5: dceacb9f98f28abc0b4fc0e4f76636cd
+      size: 1722
+    - path: src/mlflow_setup.py
+      hash: md5
+      md5: 74fc0dc017ceb21fd5f859e88d710ed9
+      size: 846
+    - path: src/train_xgb_rolling.py
+      hash: md5
+      md5: ac4af3304080bd543c4cffeb359fd7b2
+      size: 5068
+    params:
+      params.yaml:
+        prepare.train_units:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+        - 10
+        - 11
+        - 12
+        prepare.val_units:
+        - 13
+        - 14
+        xgb_rolling:
+          rolling_window: 5
+          n_estimators: 10000
+          max_depth: 10
+          learning_rate: 0.05
+          subsample: 0.8
+          colsample_bytree: 0.8
+          min_child_weight: 3
+          gamma: 0.1
+          reg_alpha: 0.1
+          reg_lambda: 1.0
+          early_stopping_rounds: 500
+    outs:
+    - path: metrics/xgb_rolling_rul.json
+      hash: md5
+      md5: b8121ad660c928dbabded0492446f1ba
+      size: 195
+    - path: models/xgb_rolling_rul.ubj
+      hash: md5
+      md5: e41ee8c273aebe5e5f9311e5ea2b9677
+      size: 1661805
+    - path: models/xgb_rolling_scaler.pkl
+      hash: md5
+      md5: 6c79570bd9dd04ba217fbc85450649ee
+      size: 13041
+  train_gru_simple:
+    cmd: .venv\Scripts\python.exe src/train_gru_simple.py
+    deps:
+    - path: data/processed/all_cycles.parquet
+      hash: md5
+      md5: 9b4e36b349cd1b88437f7ed918215579
+      size: 645175
+    - path: data/processed/metadata.json
+      hash: md5
+      md5: 6668963606fc8ca07c6ca8c39fa5af6d
+      size: 2947
+    - path: src/mlflow_setup.py
+      hash: md5
+      md5: 74fc0dc017ceb21fd5f859e88d710ed9
+      size: 846
+    - path: src/models.py
+      hash: md5
+      md5: c6df8aeb64bfe6ca7882e745a7347c7a
+      size: 3498
+    - path: src/train_gru_simple.py
+      hash: md5
+      md5: da762b491ab14ce6fb3b7384b741fd02
+      size: 6956
+    params:
+      params.yaml:
+        gru_simple:
+          window_size: 20
+          hidden_size: 32
+          dense_size: 32
+          dropout: 0.2
+          lr: 0.001
+          batch_size: 16
+          epochs: 200
+          patience: 20
+          huber_delta: 0.5
+          grad_clip: 1.0
+        prepare.rul_cap: 125
+        prepare.train_units:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+        - 10
+        - 11
+        - 12
+        prepare.val_units:
+        - 13
+        - 14
+    outs:
+    - path: metrics/gru_simple_rul.json
+      hash: md5
+      md5: 53ad4eb411ac527dfa8498cff35589b6
+      size: 183
+    - path: models/gru_simple_rul.pt
+      hash: md5
+      md5: 5c6537ecb9df21cd42f72dc4ba18522d
+      size: 48139
+    - path: models/gru_simple_scaler.pkl
+      hash: md5
+      md5: 0e52030dc4a9fc7db1539a27f74e457a
+      size: 3826
+  finetune:
+    cmd: .venv\Scripts\python.exe src/finetune.py
+    deps:
+    - path: data/processed/all_cycles.parquet
+      hash: md5
+      md5: 9b4e36b349cd1b88437f7ed918215579
+      size: 645175
+    - path: data/processed/metadata.json
+      hash: md5
+      md5: 6668963606fc8ca07c6ca8c39fa5af6d
+      size: 2947
+    - path: src/features.py
+      hash: md5
+      md5: dceacb9f98f28abc0b4fc0e4f76636cd
+      size: 1722
+    - path: src/finetune.py
+      hash: md5
+      md5: d8f3060d60f8aca721b6dfbcf4cb4ef8
+      size: 18352
+    - path: src/mlflow_setup.py
+      hash: md5
+      md5: 74fc0dc017ceb21fd5f859e88d710ed9
+      size: 846
+    - path: src/models.py
+      hash: md5
+      md5: c6df8aeb64bfe6ca7882e745a7347c7a
+      size: 3498
+    params:
+      params.yaml:
+        finetune:
+          n_trials_xgb: 50
+          n_trials_xgb_rolling: 30
+          n_trials_gru: 30
+        prepare.rul_cap: 125
+        prepare.train_units:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+        - 10
+        - 11
+        - 12
+        prepare.val_units:
+        - 13
+        - 14
+    outs:
+    - path: metrics/finetune.json
+      hash: md5
+      md5: 6f87e8e5ece9b24dc2ce3a89a351d957
+      size: 165
+    - path: models/best_model.json
+      hash: md5
+      md5: 329160aa5f36d700a5a48b3286a14adb
+      size: 1132
+    - path: models/ft_gru_simple_rul.pt
+      hash: md5
+      md5: 2737519866c617dc1ad3cb42124ab9b7
+      size: 45990
+    - path: models/ft_gru_simple_scaler.pkl
+      hash: md5
+      md5: 3ca4bf2eaeb99675eb4887bf806c3e59
+      size: 3876
+    - path: models/ft_xgb_rolling_rul.ubj
+      hash: md5
+      md5: 31e0d15aee3e70e895b0aa18947d3c8a
+      size: 621246
+    - path: models/ft_xgb_rolling_scaler.pkl
+      hash: md5
+      md5: 33ccc0da61324060e30943ae66e43c9e
+      size: 13041
+    - path: models/ft_xgb_rul.ubj
+      hash: md5
+      md5: 361e2a00f5fc3b2d05ab9061fc17ae63
+      size: 70068
+    - path: models/ft_xgb_scaler.pkl
+      hash: md5
+      md5: 85359f13330f74be6d22c5e18111a33b
+      size: 3798

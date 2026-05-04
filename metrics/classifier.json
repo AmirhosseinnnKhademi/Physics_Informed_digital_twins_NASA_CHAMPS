@@ -1,0 +1,34 @@
+{
+  "xgb_classifier": {
+    "accuracy": 0.9706,
+    "f1_macro": 0.9662,
+    "f1_weighted": 0.9707,
+    "roc_auc": 0.9973,
+    "confusion_matrix": [
+      [
+        113,
+        3
+      ],
+      [
+        2,
+        52
+      ]
+    ]
+  },
+  "lstm_classifier": {
+    "accuracy": 0.9375,
+    "f1_macro": 0.4839,
+    "f1_weighted": 0.9073,
+    "roc_auc": 0.5429,
+    "confusion_matrix": [
+      [
+        105,
+        0
+      ],
+      [
+        7,
+        0
+      ]
+    ]
+  }
+}

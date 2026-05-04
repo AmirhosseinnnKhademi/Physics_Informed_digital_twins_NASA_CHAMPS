@@ -1,0 +1,61 @@
+prepare:
+  train_units: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+  val_units:   [13, 14]
+  test_units:  [15]
+  stats:       [mean, std, min, max]
+  rul_cap:     125          # cap RUL so large early-life values don't dominate
+
+gru:
+  window_size:  10          # W = 10 cycles of history per sample
+  cnn_channels: 64          # 1D-CNN output channels fed into GRU
+  hidden_size:  128
+  num_layers:   2
+  dropout:      0.3
+  lr:           0.001
+  batch_size:   256
+  epochs:       100
+  patience:     15
+  grad_clip:    1.0
+
+xgb_rolling:
+  rolling_window:        5          # W = 20 cycles of history per sample
+  n_estimators:          10000
+  max_depth:             10
+  learning_rate:         0.05
+  subsample:             0.8
+  colsample_bytree:      0.8
+  min_child_weight:      3
+  gamma:                 0.1
+  reg_alpha:             0.1
+  reg_lambda:            1.0
+  early_stopping_rounds: 500
+
+finetune:
+  n_trials_xgb:         50   # fast on GPU
+  n_trials_xgb_rolling: 30   # slower (rolling features recomputed per trial)
+  n_trials_gru:         30   # GPU + MedianPruner kills bad trials at epoch 20
+
+gru_simple:
+  window_size:  20        # cycles of history per sample
+  hidden_size:  32        # GRU hidden units
+  dense_size:   32        # intermediate Dense units
+  dropout:      0.2
+  lr:           0.001
+  batch_size:   16        # small batch → better generalisation from few engines
+  epochs:       200
+  patience:     20
+  huber_delta:  0.5       # in normalised-RUL space (= 62.5 cycles)
+  grad_clip:    1.0
+
+xgb:
+  n_estimators:          10000
+  max_depth:             10
+  learning_rate:         0.05
+  subsample:             0.8
+  colsample_bytree:      0.8
+  min_child_weight:      3
+  gamma:                 0.1
+  reg_alpha:             0.1
+  reg_lambda:            1.0
+  early_stopping_rounds: 500
+

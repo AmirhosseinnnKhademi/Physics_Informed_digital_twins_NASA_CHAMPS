@@ -1,0 +1,24 @@
+{
+  "XGBoost": {
+    "rmse": 5.0606,
+    "mae": 4.0469,
+    "r2": 0.787,
+    "nasa_score": 21.04,
+    "n_samples": 38
+  },
+  "XGBoost-Rolling": {
+    "rmse": 3.3483,
+    "mae": 2.5273,
+    "r2": 0.9068,
+    "nasa_score": 11.59,
+    "n_samples": 38
+  },
+  "GRU-Simple  [BEST]": {
+    "rmse": 2.6277,
+    "mae": 2.2065,
+    "r2": 0.9426,
+    "nasa_score": 7.6,
+    "n_samples": 38
+  },
+  "_best_model": "GRU-Simple"
+}

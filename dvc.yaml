@@ -1,0 +1,122 @@
+# Run pipeline:  .venv\Scripts\dvc.exe repro
+
+stages:
+  prepare:
+    cmd: .venv\Scripts\python.exe src/prepare.py
+    deps:
+      - data/raw/N-CMAPSS_DS03-012.h5
+      - src/prepare.py
+    params:
+      - prepare
+    outs:
+      - data/processed/all_cycles.parquet
+      - data/processed/metadata.json
+
+
+  train_xgb:
+    cmd: .venv\Scripts\python.exe src/train_xgb.py
+    deps:
+      - data/processed/all_cycles.parquet
+      - data/processed/metadata.json
+      - src/train_xgb.py
+      - src/mlflow_setup.py
+    params:
+      - prepare.train_units
+      - prepare.val_units
+      - xgb
+    outs:
+      - models/xgb_rul.ubj
+      - models/xgb_scaler.pkl
+    metrics:
+      - metrics/xgb_rul.json:
+          cache: false
+
+  train_xgb_rolling:
+    cmd: .venv\Scripts\python.exe src/train_xgb_rolling.py
+    deps:
+      - data/processed/all_cycles.parquet
+      - data/processed/metadata.json
+      - src/train_xgb_rolling.py
+      - src/features.py
+      - src/mlflow_setup.py
+    params:
+      - prepare.train_units
+      - prepare.val_units
+      - xgb_rolling
+    outs:
+      - models/xgb_rolling_rul.ubj
+      - models/xgb_rolling_scaler.pkl
+    metrics:
+      - metrics/xgb_rolling_rul.json:
+          cache: false
+
+  train_gru_simple:
+    cmd: .venv\Scripts\python.exe src/train_gru_simple.py
+    deps:
+      - data/processed/all_cycles.parquet
+      - data/processed/metadata.json
+      - src/train_gru_simple.py
+      - src/models.py
+      - src/mlflow_setup.py
+    params:
+      - prepare.train_units
+      - prepare.val_units
+      - prepare.rul_cap
+      - gru_simple
+    outs:
+      - models/gru_simple_rul.pt
+      - models/gru_simple_scaler.pkl
+    metrics:
+      - metrics/gru_simple_rul.json:
+          cache: false
+
+  finetune:
+    cmd: .venv\Scripts\python.exe src/finetune.py
+    deps:
+      - data/processed/all_cycles.parquet
+      - data/processed/metadata.json
+      - src/finetune.py
+      - src/models.py
+      - src/features.py
+      - src/mlflow_setup.py
+    params:
+      - prepare.train_units
+      - prepare.val_units
+      - prepare.rul_cap
+      - finetune
+    outs:
+      - models/ft_xgb_rul.ubj
+      - models/ft_xgb_scaler.pkl
+      - models/ft_xgb_rolling_rul.ubj
+      - models/ft_xgb_rolling_scaler.pkl
+      - models/ft_gru_simple_rul.pt
+      - models/ft_gru_simple_scaler.pkl
+      - models/best_model.json
+    metrics:
+      - metrics/finetune.json:
+          cache: false
+
+  evaluate:
+    cmd: .venv\Scripts\python.exe src/evaluate.py
+    deps:
+      - data/processed/all_cycles.parquet
+      - data/processed/metadata.json
+      - models/ft_xgb_rul.ubj
+      - models/ft_xgb_scaler.pkl
+      - models/ft_xgb_rolling_rul.ubj
+      - models/ft_xgb_rolling_scaler.pkl
+      - models/ft_gru_simple_rul.pt
+      - models/ft_gru_simple_scaler.pkl
+      - models/best_model.json
+      - src/evaluate.py
+      - src/features.py
+      - src/models.py
+      - src/mlflow_setup.py
+    params:
+      - prepare.rul_cap
+    outs:
+      - reports/plots:
+          cache: false
+    metrics:
+      - metrics/evaluation.json:
+          cache: false
